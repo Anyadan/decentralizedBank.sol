@@ -1,0 +1,58 @@
+pragma solidity ^0.5.7;
+
+contract decentralizedBank {
+    address bank;
+    uint investment;
+    bool send;
+
+    constructor () payable public {
+        bank = msg.sender;
+        investment = msg.value;
+        send = false;
+    }
+
+    //modifiers
+    modifier onlyBank {
+       require(bank == msg.sender);
+       _; 
+    }
+
+    //transaction to disbuse funds
+    modifier transaction {
+        require(send == true);
+        _;
+    }
+
+    //list of investor wallets
+    address payable[] investorWallets;
+
+    //map through funds
+    mapping(address => uint) funds;
+    
+    // functions
+    //set allocation for each wallet
+    function setAllocation (address payable wallet, uint amount) onlyBank public {
+        investorWallets.push(wallet);
+        funds[wallet] = amount;
+    }
+
+    //pay based on allocation
+    function payout() private transaction {
+         for(uint i=0; i<investorWallets.length; i++) {
+             investorWallets[i].transfer(funds[investorWallets[i]]);
+    
+        }
+    }
+
+    //send button
+    function sendFunds() public onlyBank {
+        send = true;
+        payout();
+    }
+
+    //check investors
+    function checkInvestors() public view returns (uint) {
+        return investorWallets.length;
+    }       
+
+}
